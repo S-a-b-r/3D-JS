@@ -31,6 +31,9 @@ class Graph3D {
     moveOy(ys, point) {
         this.math.move(0, ys, 0, point);
     }
+    move(x, y, z, point){
+        this.math.move(x, y, z, point);
+    }
 
     // повороты по осям
     rotateOx(alpha, point) {
@@ -44,20 +47,44 @@ class Graph3D {
     }
 
 
-    calcDistance(subject, endPoint){
+    calcDistance(subject, endPoint, name){
+        for(let i = 0; i < subject.polygons.length; i++){
+            if(subject.polygons[i].visible){
+                const points = subject.polygons[i].points;
+                let x = 0, y = 0, z = 0;
+                for (let j = 0; j< points.length; j++){
+                    x += subject.points[points[j]].x;
+                    y += subject.points[points[j]].y;
+                    z += subject.points[points[j]].z;
+                }
+                x = x / points.length;
+                y = y / points.length;
+                z = z / points.length;
+                const dist = Math.sqrt(Math.pow(endPoint.x - x, 2) + Math.pow(endPoint.y - y, 2) + Math.pow(endPoint.z - z, 2));
+                subject.polygons[i][name] = dist;
+            }
+        }
+    }
+    calcIllummination(distance, lumen){
+        let illum = (distance) ? lumen / (distance * distance) : 1;
+        return (illum > 1) ? 1 : illum;
+    }
+
+    calcGorner(subject, endPoint){
+        const perpendicular = Math.sin(Math.PI);
+        const viewVector = this.math.calcVector(endPoint, new Point(0, 0, 0));
         for(let i = 0; i < subject.polygons.length; i++){
             const points = subject.polygons[i].points;
-            let x = 0, y = 0, z = 0;
-            for (let j = 0; j< points.length; j++){
-                x += subject.points[points[j]].x;
-                y += subject.points[points[j]].y;
-                z += subject.points[points[j]].z;
-            }
-            x = x / points.length;
-            y = y / points.length;
-            z = z / points.length;
-            const dist = Math.sqrt(Math.pow(endPoint.x - x, 2) + Math.pow(endPoint.y - y, 2) + Math.pow(endPoint.z - z, 2));
-            subject.polygons[i].distance = dist;
+            const vector1 = this.math.calcVector(
+                subject.points[points[0]],
+                subject.points[points[1]],
+            );
+            const vector2 = this.math.calcVector(
+                subject.points[points[0]],
+                subject.points[points[2]],
+            );
+            const vector3 = this.math.vectorProd(vector1,vector2);
+            subject.polygons[i].visible = this.math.calcGorner(vector3, viewVector) >= perpendicular;
         }
     }
 }

@@ -16,13 +16,12 @@ class Canvas {
         const mousemove = (callbacks.mousemove instanceof Function) ? callbacks.mousemove : function () {};
         const mousedown = (callbacks.mousedown instanceof Function) ? callbacks.mousedown : function () {};
         const mouseup = (callbacks.mouseup instanceof Function) ? callbacks.mouseup : function () {};
-        const keydown = (callbacks.keydown instanceof Function) ? callbacks.keydown : function () {};
         //...
         this.canvas.addEventListener('wheel', wheel);
         this.canvas.addEventListener('mousemove', mousemove);
         this.canvas.addEventListener('mousedown', mousedown);
         this.canvas.addEventListener('mouseup', mouseup);
-        document.addEventListener('keydown', keydown);
+        
         //...
     }
 
@@ -44,7 +43,7 @@ class Canvas {
         this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
     }
 
-    line(x1, y1, x2, y2, color = '#888', width = 2) {
+    line(x1, y1, x2, y2, color = '#888', width = 1) {
         this.context.beginPath();
         this.context.strokeStyle = color;
         this.context.lineWidth = width;
@@ -60,7 +59,7 @@ class Canvas {
         this.context.stroke();
     }
 
-    polygon(points, color = '#770000AA'){
+    polygon(points, color = '#008800BB'){
         this.context.fillStyle = color;
         this.context.fillStroke = color;
         this.context.beginPath();
@@ -69,7 +68,6 @@ class Canvas {
             this.context.lineTo(this.xs(points[i].x), this.ys(points[i].y));
         }
         this.context.closePath();
-        this.context.stroke();
         this.context.fill();
     }
 

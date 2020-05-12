@@ -1,4 +1,29 @@
 class Math3D {
+
+    calcVector(a, b){
+        return {
+            x: b.x - a.x,
+            y: b.y - a.y,
+            z: b.z - a.z,
+        }
+    }
+
+    vectorProd(a, b){
+        return {
+            x: a.y * b.z - a.z * b.y,
+            y: a.z * b.x - a.x * b.z,
+            z: a.x * b.y - a.y * b.x,
+        }
+    }
+
+    calcGorner(a, b){
+        return this.scalProd(a, b) / (Math.sqrt(this.scalProd(a, a)) + Math.sqrt(this.scalProd(b, b)))
+    }
+
+    scalProd(a,b){
+        return a.x * b.x + a.y * b.y + a.z * b.z;
+    }
+
     constructor() {
         // матрица сдвига
         this.moveMatrix = [[ 1,  0,  0, 0],
@@ -57,6 +82,12 @@ class Math3D {
         point.z = array[2];
     }
 
+    moveIn( x, y, z, point){
+        point.x = x;
+        point.y = y;
+        point.z = z;
+    }
+    
     move(sx, sy, sz, point) {
         var array = this.multMatrix(
             [[ 1,  0,  0, 0],
