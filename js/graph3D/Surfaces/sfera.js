@@ -12,7 +12,7 @@ Surfaces.prototype.sfera = (
     const da = 2 * Math.PI / count;
     //точки
     for(let i = 0; i <= Math.PI; i += da){
-        for (let j = 0; j < 2* Math.PI; j += da) {
+        for (let j = 0; j < 2 * Math.PI; j += da) {
             const x = point.x + R * Math.sin(i) * Math.cos(j);
             const y = point.y + R * Math.sin(i) * Math.sin(j);
             const z = point.z + R * Math.cos(i);

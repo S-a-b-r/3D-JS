@@ -1,13 +1,13 @@
-Surfaces.prototype.bublik = (count = 10, R = 10) => {
+Surfaces.prototype.bublik = (R = 10, count = 10, point = new Point(0, 0, 0), color = '#A5FF50', animation =  null) => {
     const points = [];
     const edges = [];
     const polygons = [];
     function setRoundOfPoints(count, R) {
         const da = 2 * Math.PI / count;
         for (let i = 0; i < 2 * Math.PI; i += da) {
-            const x = R * Math.sin(i);
-            const y = R * Math.cos(i);
-            const z = 0;
+            const x = point.x + R * Math.sin(i);
+            const y = point.y;
+            const z = point.z + R * Math.cos(i);
             points.push(new Point(x, y, z));
         }
     }
@@ -31,6 +31,6 @@ Surfaces.prototype.bublik = (count = 10, R = 10) => {
     }
     polygons.push(new Polygon([count,count*2-1,count-1,0],'#A5FF50'));
 
-    return new Subject(points, edges, polygons);
+    return new Subject(points, edges, polygons, animation);
 
 }

@@ -17,35 +17,34 @@ class Graph3D {
         const y0 = this.WINDOW.CAMERA.y;
         return (point.y - y0) / (point.z - z0) * (zs - z0) + y0;
     }
-
-    // масштабирование точки
-    zoom(delta, point) { 
-        this.math.zoom(delta, point); 
+    
+    zoomMatrix(delta){
+        this.math.transformMatrix([this.math.zoomMatrix(delta)]);
+    }
+    moveMatrix(sx, sy, sz){
+        this.math.transformMatrix([this.math.moveMatrix(sx, sy, sz)]);
+    }
+    rotateOxMatrix(alpha) {
+        this.math.transformMatrix([this.math.rotateOxMatrix(alpha)]);
+    }
+    rotateOyMatrix(alpha) {
+        this.math.transformMatrix([this.math.rotateOyMatrix(alpha)]);
+    }
+    rotateOzMatrix(alpha) {
+        this.math.transformMatrix([this.math.rotateOzMatrix(alpha)]);
     }
 
-    // перенос точки вдоль оси Ox
-    moveOx(xs, point) { 
-        this.math.move(xs, 0, 0, point);
-    }
-    // перенос точки вдоль оси Oy
-    moveOy(ys, point) {
-        this.math.move(0, ys, 0, point);
-    }
-    move(x, y, z, point){
-        this.math.move(x, y, z, point);
+    animateMatrix(x1, y1, z1, key, alpha, x2, y2, z2){
+        this.math.transformMatrix([
+            this.math.moveMatrix(x1, y1, z1),
+            this.math[`${key}Matrix`](alpha),
+            this.math.moveMatrix(x2, y2, z2)
+            ]);
     }
 
-    // повороты по осям
-    rotateOx(alpha, point) {
-        this.math.rotateOx(alpha, point);
+    transform(point){
+        this.math.transform(point);
     }
-    rotateOy(alpha, point) {
-        this.math.rotateOy(alpha, point);
-    }
-    rotateOz(alpha, point) {
-        this.math.rotateOz(alpha, point);
-    }
-
 
     calcDistance(subject, endPoint, name){
         for(let i = 0; i < subject.polygons.length; i++){
@@ -71,20 +70,20 @@ class Graph3D {
     }
 
     calcGorner(subject, endPoint){
-        const perpendicular = Math.sin(Math.PI);
+        const perpendicular = Math.cos(Math.PI / 2);
         const viewVector = this.math.calcVector(endPoint, new Point(0, 0, 0));
         for(let i = 0; i < subject.polygons.length; i++){
             const points = subject.polygons[i].points;
             const vector1 = this.math.calcVector(
                 subject.points[points[0]],
-                subject.points[points[1]],
+                subject.points[points[1]]
             );
             const vector2 = this.math.calcVector(
                 subject.points[points[0]],
-                subject.points[points[2]],
+                subject.points[points[3]]
             );
             const vector3 = this.math.vectorProd(vector1,vector2);
-            subject.polygons[i].visible = this.math.calcGorner(vector3, viewVector) >= perpendicular;
+            subject.polygons[i].visible = this.math.calcGorner(viewVector, vector3) >= perpendicular;
         }
     }
 }
