@@ -16,12 +16,15 @@ window.onload = function () {
         BOTTOM: -10,
         WIDTH: 20,
         HEIGHT: 20,
+        P1: new Point(-10,  10, -30),
+        P2: new Point(-10, -10, -30),
+        P3: new Point( 10, -10, -30),
         CENTER: new Point(0, 0, -30), // центр окошка, через которое видим мир
         CAMERA: new Point(0, 0, -50) // точка, из которой смотрим на мир
     };
     const ZOOM_OUT = 1.1;
     const ZOOM_IN = 0.9;
-    let canRotate = false;
+    let canMove = false;
     let canPrint = {
         points: false,
         edges: false,
@@ -31,7 +34,7 @@ window.onload = function () {
     const sur = new Surfaces;
     const canvas = new Canvas({ width: 600, height: 600, WINDOW, callbacks: { wheel, mousemove, mousedown, mouseup}});
     const graph3D = new Graph3D({ WINDOW });
-    const ui = new UI({callbacks:{ move, printPoints, printPolygons, printEdges}});
+    const ui = new UI({callbacks:{ rotate, printPoints, printPolygons, printEdges}});
 
     const SCENE = [sur.sfera(10, 20, new Point(0, 0, 0), '#FFFF47', {}),//Солнце
                    //sur.sfera(2.4, 20, new Point(100, 0, 0), '#666666'),//Меркурий
@@ -51,46 +54,44 @@ window.onload = function () {
     function wheel(event) {
         const delta = (event.wheelDelta > 0) ? ZOOM_IN : ZOOM_OUT;
         graph3D.zoomMatrix(delta);
-        SCENE.forEach(subject => {
-            subject.points.forEach(point => graph3D.transform(point));
-            if(subject.animation){
-                for(let key in subject.animation){
-                    graph3D.transform(subject.animation[key]);
-                }
-            }
-        });
+        //SCENE.forEach(subject => {
+        //    if(subject.animation){
+        //        for(let key in subject.animation){
+        //            graph3D.transform(subject.animation[key]);
+        //        }
+        //    }
+        //});
+        graph3D.transform(WINDOW.CAMERA);
+        graph3D.transform(WINDOW.CENTER);
+        graph3D.transform(WINDOW.P1);
+        graph3D.transform(WINDOW.P2);
+        graph3D.transform(WINDOW.P3);
     }
 
     function mousedown(){
-        canRotate = true;
+        canMove = true;
     };
-
     function mouseup(){
-        canRotate = false;
+        canMove = false;
     };
 
     function mousemove(event) {
-        if(canRotate){
-            let alphaX = -0.01 * event.movementY;
-            graph3D.rotateOxMatrix(alphaX);
+        if(canMove){
+            let alphaX = -0.01 * event.movementX;
+            let alphaY = -0.01 * event.movementY;
+            graph3D.moveMatrix(alphaX,alphaY,0);
             SCENE.forEach(subject => {
-                subject.points.forEach(point => graph3D.transform(point));
-                if (subject.animation) {
+                if(subject.animation){
                     for(let key in subject.animation){
                         graph3D.transform(subject.animation[key]);
                     }
                 }
             });
-            let alphaY = -0.01 * event.movementX;
-            graph3D.rotateOyMatrix(alphaY);
-            SCENE.forEach(subject => {
-                subject.points.forEach(point => graph3D.transform(point));
-                if (subject.animation) {
-                   for(let key in subject.animation){
-                        graph3D.transform(subject.animation[key]);
-                    }
-                }
-            });
+            graph3D.transform(WINDOW.CAMERA);
+            graph3D.transform(WINDOW.CENTER);
+            graph3D.transform(WINDOW.P1);
+            graph3D.transform(WINDOW.P2);
+            graph3D.transform(WINDOW.P3);
         }
     }
     
@@ -107,8 +108,19 @@ window.onload = function () {
         canPrint.polygons = value;
     }
 
-    function move(direction){
-        if (direction == 'up' || direction == 'down'){
+    function rotate(direction){
+        switch(direction){
+            case 'up': graph3D.rotateOxMatrix(-Math.PI/180);break;
+            case 'down': graph3D.rotateOxMatrix(Math.PI/180);break;
+            case 'left': graph3D.rotateOyMatrix(Math.PI/180);break;
+            case 'right': graph3D.rotateOyMatrix(-Math.PI/180);break;
+        }
+        graph3D.transform(WINDOW.CAMERA);
+        graph3D.transform(WINDOW.CENTER);
+        graph3D.transform(WINDOW.P1);
+        graph3D.transform(WINDOW.P2);
+        graph3D.transform(WINDOW.P3);
+        /*if (direction == 'up' || direction == 'down'){
             const delta = (direction == 'up') ? 0.5 : -0.5;
             graph3D.moveMatrix(0, delta, 0);
             SCENE.forEach(subject => subject.points.forEach(point => graph3D.transform(point)));
@@ -117,7 +129,7 @@ window.onload = function () {
             const delta = (direction == 'left') ? -0.5 : 0.5;
             graph3D.moveMatrix(delta, 0, 0);
             SCENE.forEach(subject => subject.points.forEach(point => graph3D.transform(point)));
-        }
+        }*/
     }
 
     function printSubject(subject) {
@@ -127,14 +139,14 @@ window.onload = function () {
                 const edges = subject.edges[i];
                 const point1 = subject.points[edges.p1];
                 const point2 = subject.points[edges.p2];
-                canvas.line(graph3D.xs(point1), graph3D.ys(point1), graph3D.xs(point2), graph3D.ys(point2));
+                canvas.line(graph3D.getProection(point1).x, graph3D.getProection(point1).y, graph3D.getProection(point2).x, graph3D.getProection(point2).y);
             }
         }
         // print points
         if(canPrint.points){
             for (let i = 0; i < subject.points.length; i++) {
                 const points = subject.points[i];
-                canvas.point(graph3D.xs(points), graph3D.ys(points));
+                canvas.point(graph3D.getProection(points).x, graph3D.getProection(points).y);
             }
         }
     }
@@ -144,7 +156,7 @@ window.onload = function () {
 
             const polygons = [];
             SCENE.forEach(subject =>{
-                //graph3D.calcGorner(subject, WINDOW.CAMERA);
+                //graph3D.calcCorner(subject, WINDOW.CAMERA);
 
                 graph3D.calcDistance(subject, WINDOW.CAMERA,'distance');
                 graph3D.calcDistance(subject, LIGHT ,'lumen');
@@ -152,22 +164,10 @@ window.onload = function () {
                 for (let i = 0; i < subject.polygons.length; i++){
                     if(subject.polygons[i].visible){
                         const polygon = subject.polygons[i];
-                        const point1 = {
-                            x: graph3D.xs(subject.points[polygon.points[0]]),
-                            y: graph3D.ys(subject.points[polygon.points[0]])
-                        };
-                        const point2 = {
-                            x: graph3D.xs(subject.points[polygon.points[1]]),
-                            y: graph3D.ys(subject.points[polygon.points[1]])
-                        };
-                        const point3 = {
-                            x: graph3D.xs(subject.points[polygon.points[2]]),
-                            y: graph3D.ys(subject.points[polygon.points[2]])
-                        };
-                        const point4 = {
-                            x: graph3D.xs(subject.points[polygon.points[3]]),
-                            y: graph3D.ys(subject.points[polygon.points[3]])
-                        };
+                        const point1 = graph3D.getProection(subject.points[polygon.points[0]]);
+                        const point2 = graph3D.getProection(subject.points[polygon.points[1]]);
+                        const point3 = graph3D.getProection(subject.points[polygon.points[2]]);
+                        const point4 = graph3D.getProection(subject.points[polygon.points[3]]);
 
                         let {r, g, b} = polygon.hexToRgb(polygon.color);
                         const lumen = graph3D.calcIllummination(polygon.lumen, LIGHT.lumen);
@@ -227,6 +227,8 @@ window.onload = function () {
             FPSout = FPS;
             FPS = 0;
         }
+        graph3D.calcPlaneEquation();
+        graph3D.calcWindowVectors();
         render();
         requestAnimFrame(animloop);
     })();
